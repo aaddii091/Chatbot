@@ -1,11 +1,13 @@
 <script setup>
 import dashboardView from "./components/dashboardView.vue";
+import navbarView from "./components/navbarView.vue";
 </script>
 
 <template>
-  <div>
-    <dashboard-view />
+  <div class="display">
+    <navbar-view class="navbar" />
+    <dashboard-view class="dashboard" />
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style scoped></style>
