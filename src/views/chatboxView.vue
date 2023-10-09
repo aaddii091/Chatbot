@@ -22,6 +22,7 @@
 <script setup>
 // imports
 // import OpenAI from "openai";
+import OpenAI from "openai";
 import { ref } from "vue";
 import messageView from "./messageView.vue";
 import axios from "axios";
@@ -60,7 +61,7 @@ const messageSent = () => {
 // const response = ref("");
 
 // const sendPromptToChatGPT = async () => {
-//   const apiKey = "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";
+//   const apiKey = "";
 //   const apiUrl = "https://api.openai.com/v1/chat/completions";
 
 //   try {
@@ -90,25 +91,28 @@ const responses = ref("");
 
 const fetchResponse = async () => {
   try {
-    const apiKey = "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";
-    const prompt = "What is the weather like today?";
-    const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions ",
-      {
-        prompt,
-        max_tokens: 50, // Adjust this as needed
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey} `,
-        },
-      }
-    );
+    // const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    // const prompt = "What is the weather like today?";
 
-    if (response.data.choices.length > 0) {
-      responses.value = response.data.choices[0].text;
-      console.log(responses.value);
-    }
+    const openai = new OpenAI({
+      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+      dangerouslyAllowBrowser: true,
+    });
+
+    const completion = await openai.chat.completions.create({
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: "hello" },
+      ],
+      model: "gpt-3.5-turbo",
+    });
+
+    console.log(completion.choices[0]);
+
+    // if (response.data.choices.length > 0) {
+    //   responses.value = response.data.choices[0].text;
+    //   console.log(responses.value);
+    // }
   } catch (error) {
     console.error("Error fetching ChatGPT response:", error);
   }
