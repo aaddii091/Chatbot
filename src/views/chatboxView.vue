@@ -1,17 +1,20 @@
 <template>
   <div>
     <div class="container">
-      <div class="messages">
-        <messageView message="hello" />
+      <div class="message-container no-scroll-display">
+        <div class="messages" v-for="data in chats" :key="data.id">
+          <messageView :message="data.content" :role="data.role" />
+        </div>
       </div>
       <div class="search-bar">
         <div class="search-inner">
           <input type="text" v-model="inputText" />
-          <ph-microphone :size="32" class="icons" />
+          <ph-microphone :size="32" class="icons" @click="ToggleMic" />
           <ph-arrow-circle-right
             :size="32"
             class="icons tick"
             @click="messageSent()"
+            @keypress.enter="messageSent()"
           />
         </div>
       </div>
@@ -21,75 +24,80 @@
 
 <script setup>
 // imports
-// import OpenAI from "openai";
 import OpenAI from "openai";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import messageView from "./messageView.vue";
-import axios from "axios";
+
+// speech Recognition variables
+const isRecording = ref(false);
+
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const sr = new Recognition();
+
+// visibility variables
+const messageV = ref(false);
 
 // variables
 
-const chats = ref([]);
+const chats = ref([{}]);
 const inputText = ref("");
 
-// functions
+onMounted(() => {
+  sr.continuous = false;
+  sr.interimResults = true;
 
-// const prompt = ref("Hello");
-// const response = ref("");
+  sr.onstart = () => {
+    console.log("SR Started");
+    isRecording.value = true;
+  };
 
-// async function generateResponse() {
-//   const response = await OpenAI.complete(prompt.value, {
-//     model: "chatgpt",
-//     temperature: 0.7,
-//     max_tokens: 1024,
-//   });
+  sr.onend = () => {
+    console.log("SR Stopped");
+    isRecording.value = false;
+  };
 
-//   response.value = response.choices[0].text;
-//   console.log(response.value);
-// }
+  sr.onresult = (evt) => {
+    for (let i = 0; i < evt.results.length; i++) {
+      const result = evt.results[i];
+
+      if (result.isFinal) CheckForCommand(result);
+    }
+
+    const t = Array.from(evt.results)
+      .map((result) => result[0])
+      .map((result) => result.transcript)
+      .join("");
+
+    inputText.value = t;
+  };
+});
+
+const CheckForCommand = (result) => {
+  // const t = result[0].transcript;
+};
+
+const ToggleMic = () => {
+  if (isRecording.value) {
+    sr.stop();
+  } else {
+    sr.start();
+  }
+};
+
 const messageSent = () => {
   if (inputText.value !== "") {
-    chats.value.push(inputText.value);
+    fetchResponse(inputText.value);
+    chats.value.push({ role: "user", content: inputText.value });
     inputText.value = "";
     console.log(chats.value);
     // generateResponse();
     // sendPromptToChatGPT();
-    fetchResponse();
   }
 };
 
-// const response = ref("");
-
-// const sendPromptToChatGPT = async () => {
-//   const apiKey = "";
-//   const apiUrl = "https://api.openai.com/v1/chat/completions";
-
-//   try {
-//     const result = await axios.post(
-//       apiUrl,
-//       {
-//         prompt: "hey", // Replace with your prompt
-//         max_tokens: 500, // You can adjust the response length
-//         model: "gpt-3.5-turbo",
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${apiKey}`,
-//         },
-//       }
-//     );
-
-//     response.value = result.data.choices[0].text;
-//     console.log(response.value);
-//   } catch (error) {
-//     console.error("Error sending prompt to ChatGPT:", error);
-//     response.value = "An error occurred while processing your request.";
-//   }
-// };
-
 const responses = ref("");
 
-const fetchResponse = async () => {
+const fetchResponse = async (input) => {
   try {
     // const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
     // const prompt = "What is the weather like today?";
@@ -101,31 +109,39 @@ const fetchResponse = async () => {
 
     const completion = await openai.chat.completions.create({
       messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: "hello" },
+        { role: "system", content: "You are a helpful law assistant." },
+        { role: "user", content: input },
       ],
       model: "gpt-3.5-turbo",
     });
-
+    // adding to stack
     console.log(completion.choices[0]);
-
-    // if (response.data.choices.length > 0) {
-    //   responses.value = response.data.choices[0].text;
-    //   console.log(responses.value);
-    // }
+    chats.value.push(completion.choices[0].message);
+    console.log(chats.value);
   } catch (error) {
     console.error("Error fetching ChatGPT response:", error);
   }
 };
-
-// Automatically send the prompt when the component is mounted
-// onMounted(sendPromptToChatGPT);
 </script>
 
 <style scoped>
 .messages {
-  margin: 1rem;
-  border-radius: 15px;
+  background-color: rgba(240, 248, 255, 0);
+}
+.message-container {
+  height: calc(100vh - 12rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: 1px;
+  background-color: rgba(245, 222, 179, 0);
+}
+.no-scroll-display {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scroll-display::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 .container {
   position: relative;
