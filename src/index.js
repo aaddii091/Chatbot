@@ -33,4 +33,13 @@ router.beforeEach(async (to, from, next) => {
     if (to.matched.some((record) => record.meta.requiresAuth)) {
         if (await getCurrentUser) {
             next();
-        }else{}
+        }else{
+            alert("you dont have access!");
+            next("/");
+        }
+    }else {
+            next();
+        }
+    });
+
+    export default router;
