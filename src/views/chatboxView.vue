@@ -34,12 +34,9 @@ const isRecording = ref(false);
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const sr = new Recognition();
 
-// visibility variables
-const messageV = ref(false);
-
 // variables
 
-const chats = ref([{}]);
+const chats = ref([]);
 const inputText = ref("");
 
 onMounted(() => {
@@ -99,9 +96,6 @@ const responses = ref("");
 
 const fetchResponse = async (input) => {
   try {
-    // const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    // const prompt = "What is the weather like today?";
-
     const openai = new OpenAI({
       apiKey: import.meta.env.VITE_OPENAI_API_KEY,
       dangerouslyAllowBrowser: true,
@@ -114,10 +108,18 @@ const fetchResponse = async (input) => {
       ],
       model: "gpt-3.5-turbo",
     });
+
     // adding to stack
     console.log(completion.choices[0]);
     chats.value.push(completion.choices[0].message);
     console.log(chats.value);
+    console.log(chats.value[0]);
+    // start speech to txt
+    const utterance = new SpeechSynthesisUtterance(
+      completion.choices[0].message.content
+    );
+    console.log(chats.value[0].content);
+    window.speechSynthesis.speak(utterance);
   } catch (error) {
     console.error("Error fetching ChatGPT response:", error);
   }

@@ -1,5 +1,5 @@
 <template>
-  <div :class="props.role === 'user' ? 'human' : 'ai'">
+  <div :class="props.role === 'user' ? 'human' : 'ai'" v-if="props.role">
     <div class="message_container human">
       <h1>{{ props.message }}</h1>
     </div>
