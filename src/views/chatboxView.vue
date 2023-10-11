@@ -9,7 +9,7 @@
       <div class="search-bar">
         <div class="search-inner">
           <input type="text" v-model="inputText" />
-          <ph-microphone :size="32" class="icons" @click="ToggleMic" />
+          <ph-microphone :size="32" class="icons" @click="ToggleMic" ref="listening" />
           <ph-arrow-circle-right
             :size="32"
             class="icons tick"
@@ -27,7 +27,7 @@
 import OpenAI from "openai";
 import { onMounted, ref } from "vue";
 import messageView from "./messageView.vue";
-
+//listening activity
 // speech Recognition variables
 const isRecording = ref(false);
 
