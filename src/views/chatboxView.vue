@@ -1,15 +1,17 @@
 <template>
   <div>
     <div class="container">
-      <div class="message-container no-scroll-display">
+      <div class="message-container no-scroll-display" >
         <div class="messages" v-for="data in chats" :key="data.id">
           <messageView :message="data.content" :role="data.role" />
         </div>
+        <LoaderVue v-if="inputFreeze"/>
       </div>
+      <form @submit.prevent="messageSent()">
       <div class="search-bar">
         <div class="search-inner">
-          <input type="text" v-model="inputText" />
-          <ph-microphone :size="32" class="icons" @click="ToggleMic" />
+            <input type="text" v-model="inputText" />
+          <ph-microphone :size="32" class="icons" @click="ToggleMic" :class="isRecording === true ? 'active' : 'dis'"/>
           <ph-arrow-circle-right
             :size="32"
             class="icons tick"
@@ -18,6 +20,7 @@
           />
         </div>
       </div>
+    </form>
     </div>
   </div>
 </template>
@@ -26,20 +29,25 @@
 // imports
 import OpenAI from "openai";
 import { onMounted, ref } from "vue";
+import LoaderVue from "../assets/Loader.vue";
 import messageView from "./messageView.vue";
 
 // speech Recognition variables
 const isRecording = ref(false);
+// const micActivity = ref(false);
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const sr = new Recognition();
 
 // variables
 
+const inputFreeze = ref(false)
 const chats = ref([]);
 const inputText = ref("");
 
 onMounted(() => {
+  const scrollDiv = document.querySelector(".message-container")
+  console.log(scrollDiv.scrollIntoView);
   sr.continuous = false;
   sr.interimResults = true;
 
@@ -51,6 +59,7 @@ onMounted(() => {
   sr.onend = () => {
     console.log("SR Stopped");
     isRecording.value = false;
+    messageSent()
   };
 
   sr.onresult = (evt) => {
@@ -82,7 +91,7 @@ const ToggleMic = () => {
 };
 
 const messageSent = () => {
-  if (inputText.value !== "") {
+  if (inputText.value !== "" && !inputFreeze.value) {
     fetchResponse(inputText.value);
     chats.value.push({ role: "user", content: inputText.value });
     inputText.value = "";
@@ -95,29 +104,32 @@ const messageSent = () => {
 const responses = ref("");
 
 const fetchResponse = async (input) => {
+  inputFreeze.value = true
   try {
     const openai = new OpenAI({
       apiKey: import.meta.env.VITE_OPENAI_API_KEY,
       dangerouslyAllowBrowser: true,
     });
-
+    
     const completion = await openai.chat.completions.create({
       messages: [
-        { role: "system", content: "You are a helpful law assistant." },
+        { role: "system", content: `You are a chat agent named Eddy and you will only answer questions related " strengthening the system for cleanliness of water bodies." any questions which are not related to " strengthening the system for cleanliness of water bodies" will need to be confirmed from the user only then you can answer that .`},
         { role: "user", content: input },
       ],
+      // model: "gpt-4-0613",
       model: "gpt-3.5-turbo",
     });
-
+    // changing input freeze state
+    inputFreeze.value = false;
     // adding to stack
-    console.log(completion.choices[0]);
+    console.log(completion);
     chats.value.push(completion.choices[0].message);
     console.log(chats.value);
     console.log(chats.value[0]);
     // start speech to txt
     const utterance = new SpeechSynthesisUtterance(
       completion.choices[0].message.content
-    );
+      );
     console.log(chats.value[0].content);
     window.speechSynthesis.speak(utterance);
   } catch (error) {
@@ -147,6 +159,7 @@ const fetchResponse = async (input) => {
 }
 .container {
   position: relative;
+
 }
 
 .search-inner {
@@ -177,5 +190,11 @@ const fetchResponse = async (input) => {
 .icons {
   margin: 7px 10px 0px 0px;
   border-radius: 25px;
+  
+}
+.active{
+  margin: 7px 10px 0px 0px;
+  border-radius: 25px;
+  filter: invert(100%);
 }
 </style>

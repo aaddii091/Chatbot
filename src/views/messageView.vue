@@ -8,7 +8,6 @@
 
 <script setup>
 const props = defineProps(["message", "role"]);
-console.log(props.role);
 </script>
 
 <style scoped>
