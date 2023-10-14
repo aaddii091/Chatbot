@@ -5,7 +5,7 @@
         <ul>
           <div class="pill">
             <li class="logo">
-              <ph-list :size="28" class="icons" />Eddy
+              <ph-list :size="28" class="icons" />Eddie
             </li>
             <li></li>
           </div>

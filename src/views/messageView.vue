@@ -21,7 +21,9 @@ const props = defineProps(["message", "role"]);
 }
 
 .ai div {
-  color: rgb(125, 255, 240) !important;
+  /* color: rgb(125, 255, 240) !important;
+   */
+   color: var(--text);
   display: flex;
   justify-content: start;
 }

@@ -30,11 +30,23 @@ font-family: 'Roboto', sans-serif;
     --background3: #C147E9;
     --text: #E5B8F4;
 } */
+/* :root { 
+    --background: #352F44;
+    --background2: #5C5470;
+    --background3: #B9B4C7;
+    --text: #FAF0E6;
+} */
+:root {
+    --background: #27374D;
+    --background2: #526D82;
+    --background3: #9DB2BF;
+    --text: #DDE6ED;
+}
 
 /* green  */
-:root {
+/* :root {
     --background: #0F0F0F;
     --background2: #232D3F;
     --background3: #005B41;
     --text: #00bda4;
-}
+} */

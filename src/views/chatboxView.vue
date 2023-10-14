@@ -1,11 +1,12 @@
 <template>
-  <div>
+  <div >
     <div class="container">
       <div class="message-container no-scroll-display" >
         <div class="messages" v-for="data in chats" :key="data.id">
           <messageView :message="data.content" :role="data.role" />
         </div>
         <LoaderVue v-if="inputFreeze"/>
+        <avatar v-if="videoStatus"/>
       </div>
       <form @submit.prevent="messageSent()">
       <div class="search-bar">
@@ -31,6 +32,7 @@ import OpenAI from "openai";
 import { onMounted, ref } from "vue";
 import LoaderVue from "../assets/Loader.vue";
 import messageView from "./messageView.vue";
+import avatar from "./avatar.vue";
 
 // speech Recognition variables
 const isRecording = ref(false);
@@ -41,11 +43,16 @@ const sr = new Recognition();
 
 // variables
 
+const videoStatus = ref(false)
 const inputFreeze = ref(false)
 const chats = ref([]);
 const inputText = ref("");
 
+
 onMounted(() => {
+
+
+
   const scrollDiv = document.querySelector(".message-container")
   console.log(scrollDiv.scrollIntoView);
   sr.continuous = false;
@@ -113,11 +120,11 @@ const fetchResponse = async (input) => {
     
     const completion = await openai.chat.completions.create({
       messages: [
-        { role: "system", content: `You are a chat agent named Eddy and you will only answer questions related " strengthening the system for cleanliness of water bodies." any questions which are not related to " strengthening the system for cleanliness of water bodies" will need to be confirmed from the user only then you can answer that .`},
+        { role: "system", content: `You are a chat agent named Eddie and you will only answer questions related " strengthening the system for cleanliness of water bodies." any questions which are not related to " strengthening the system for cleanliness of water bodies" will need to be confirmed from the user only then you can answer that .`},
         { role: "user", content: input },
       ],
-      // model: "gpt-4-0613",
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-0613",
+      // model: "gpt-3.5-turbo", 
     });
     // changing input freeze state
     inputFreeze.value = false;
@@ -131,10 +138,27 @@ const fetchResponse = async (input) => {
       completion.choices[0].message.content
       );
     console.log(chats.value[0].content);
-    window.speechSynthesis.speak(utterance);
-  } catch (error) {
-    console.error("Error fetching ChatGPT response:", error);
+    window.speechSynthesis.speak(utterance)
+    videoStatus.value = true
+    utterance.addEventListener("end", (event) => {
+      console.log(
+        `Utterance has finished being spoken after ${event.elapsedTime} seconds.`,
+        videoStatus.value = false
+      );
+    })
+window.addEventListener("keydown", (event) => {
+  if (event.key === "s" || event.key === "S") {
+    // Stop speechSynthesis when "S" key is pressed
+    window.speechSynthesis.cancel();
+        videoStatus.value = false
+
   }
+});
+  //     utterance.onend(() => {
+  // })
+    } catch (error) {
+      console.error("Error fetching ChatGPT response:", error);
+    }
 };
 </script>
 
